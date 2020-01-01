@@ -5,52 +5,9 @@
 2011
 """
 import numpy as np
-dict_notesnum={'C':1,'C#':2,'Db':2,'D':3,'D#':4,'Eb':4,
-            'E':5,'F':6,'F#':7,'Gb':7,
-            'G':8,'G#':9,'Ab':9,
-            'A':10,'A#':11,'Bb':11,'B':12}
-dict_numnotes = {1: 'C', 2: 'C#', 3: 'D', 4: 'D#', 5: 'E', 6: 'F',
-                 7: 'F#', 8: 'G', 9: 'G#', 10: 'A', 11: 'A#', 12: 'B'}
-dict_numita = {1: 'Do', 2: 'Do#', 3: 'Re', 4: 'Re#', 5: 'Mi', 6: 'Fa',
-                 7: 'Fa#', 8: 'Sol', 9: 'Sol#', 10: 'La', 11: 'La#', 12: 'Si'}
+from collections import defaultdict
+from data_sc import *
 
-dict_tunings={
-            'Guitar_EADGBE': (5,10,3,8,12,5),
-            'Guitar_OpenD_DADF#AD':(3,10,3,7,10,3),
-            'Guitar_OpenG_DGDGBD':(3,8,3,8,12,3),
-            'Guitar_DropD_DADGBE':(3,10,3,8,12,5),
-            'Guitar_Celtic_DADGAD':(3,10,3,8,10,3),
-            'Mandolin_GDAE':(8,3,10,5),
-            'Mandola_CGDA':(1,8,3,10),
-            'IrishBouzouki_GDAD':(8,3,10,3),
-            'GreekLute_DGDA':(3,8,3,10),
-}
-dict_chordquality={
-            'Maj':(1,5,8),'min':(1,4,8),
-            '7th':(1,5,8,11),'9th':(1,3,5,8,11),'11th':(1,3,5,6,8,11),'13th':(1,5,10,11),
-            'm6':(1,4,8,10),'min7th':(1,4,8,11),'m9':(1,3,4,11),'m11':(1,4,6,8,11),'m13':(1,4,8,10,11),
-            '6th':(1,5,8,10),'Maj7th':(1,5,8,12),'Maj9':(1,3,5,8,12),'Maj13':(1,3,5,8,10,12),
-            '+':(1,5,9),'dim':(1,4,7,10),'sus4':(1,6,8),'sus2':(1,3,8),'dim7':(1,4,7,10),
-            '7+':(1,5,9,11),'9sus4':(1,3,6,8,11),'9+':(1,3,5,9,11),'7sus4':(1,6,8,11),
-            'add9':(1,3,5,8),'m(add9)':(1,3,4,8),
-            '6/9':(1,3,5,10),'7#9':(1,4,5,8,11),
-            '7b5':(1,5,7,11),'m7b5':(1,4,7,11),
-            '7b9':(1,2,5,8,11),'9b5':(1,3,5,7,11),
-            '2,#4':(1,3,7),'2, 4':(1,3,6)          
-            }
-
-'''dict_scales={
-            'Major': (1,3,5,6,8,10,12),
-            'Minor': (1,3,4,....),
-            'Pentatonic': (1,3,6,8,10),
-            'Romanian': (1,3,4,7,8,10,11),
-            'HungarianMajor': (1,4,5,7,8,10,11),
-            'Persian': (1,2,5,6,7,9,12),
-            'Enigmatic': (1,2,5,7,9,11,12),
-            'Major': (1,3,5,6,8,10,12),
-
-
-}'''
 
 class cl_fretb():
     ''' 
@@ -68,7 +25,18 @@ class cl_fretb():
             chosca.numboard  >> a dictionary with note code numbers from which the fretboard was calculated
                                 Useful only in the beginning till the code is tested        
     '''
-    def __init__(self,fret_tup,tune_tup,scale_tup):
+    def __init__(self,fret_tup,tune_tup,scale_tup_untpose,tpose=0):
+        # transpose the scale or chord
+        li=[]
+        for ele in scale_tup_untpose:
+            el=ele+tpose
+            while el>12:
+                el-=12
+            li.append(el)
+        scale_tup=tuple(li)  
+        #----
+        nut=0.07
+        finger=0.4
         if isinstance(fret_tup,int):
             fret_tup=(0,fret_tup)
         fretstart,fretlast=fret_tup
@@ -79,10 +47,15 @@ class cl_fretb():
         # fretboard
         dict_fretb={}
         dict_fretb2={}
+        dict_plotdata = defaultdict(list)
+        dict_plotdata_open = defaultdict(list)
+        fret_dict=defaultdict(list)
+        li_plotstrings=[]
         stune=''
         nst=0
         for st in tune_tup:
             nst+=1
+            li_plotstrings.append(((nst,nst),(fretstart-nut,fretlast)))
             stemp=dict_numnotes[st]
             stune+=stemp
             litemp=[]
@@ -92,12 +65,24 @@ class cl_fretb():
                 litemp.append(itemp) # the complete integer fretboard will have all the notes
                 litemp2.append(' ')# ignore frets till starting fret
             for fr in range(fretstart,fretlast+1):
+                if fr>0:
+                    fret_dict['label'].append(str(fr))
+                    fret_dict['fret'].append(fr)
+                    fret_dict['string'].append(0.7)
                 itemp=st+fr
                 while itemp>12:
                     itemp-=12
                 litemp.append(itemp)
                 if itemp in scale_tup:
                     litemp2.append(dict_numnotes[itemp])
+                    if fr==0:
+                        dict_plotdata_open['label'].append(dict_numnotes[itemp])
+                        dict_plotdata_open['fret'].append(fr)
+                        dict_plotdata_open['string'].append(nst)
+                    else:
+                        dict_plotdata['label'].append(dict_numnotes[itemp])
+                        dict_plotdata['fret'].append(fr-finger)
+                        dict_plotdata['string'].append(nst)
                 else:
                     litemp2.append(' ')
                     
@@ -106,6 +91,22 @@ class cl_fretb():
         self.tuning=stune
         self.fretboard=dict_fretb2
         self.numboard=dict_fretb
+        # blank data error fix
+        if len(dict_plotdata_open)==0:
+            dict_plotdata_open={'label':[], 'fret':[], 'string':[]}
+        self.plot_pzero={'notes_open':dict_plotdata_open,'frets':fret_dict}
+        # blank data error fix
+        if len(dict_plotdata)==0:
+            dict_plotdata={'label':[], 'fret':[], 'string':[]}
+        self.plot_p={'notes':dict_plotdata}
+        
+        li_plotfrets=[]
+        fr=fretstart-nut
+        li_plotfrets.append(((1,nst),(fr,fr)))
+        for fr in range(fretstart,fretlast+1):
+            li_plotfrets.append(((1,nst),(fr,fr)))
+
+        self.plot_lines={'strings':li_plotstrings,'frets':li_plotfrets}
     def print_fret(self):
         
         print('Number of strings : ',self.nstrings)
@@ -119,6 +120,54 @@ class cl_fretb():
             for k,li in self.fretboard.items():
                 print(li[fr],end=' | ')
             print('')
+    def bokplot(self,nhtml=True):
+        from bokeh.plotting import figure, show
+        from bokeh.models import ColumnDataSource, LabelSet, Label
+        if nhtml:
+            from bokeh.plotting import output_file
+            output_file("output.html")
+        else:
+            from bokeh.plotting import output_notebook
+        plottitle='Tuning : {} , Active frets : {}=>{}'.format(self.tuning,self.fretstart,self.fretlast)
+        # grid lines : strings and frets
+        dsty_line={'strings':{'lcolor':'#111111','lwidth':2},
+                        'frets':{'lcolor':'#111111','lwidth':1}}
+        p = figure(title=plottitle,y_range=(self.fretlast+0.5,self.fretstart-0.5))
+        for pldata in ['strings','frets']:
+            for st in self.plot_lines[pldata]:
+                x,y=st
+                p.line(x, y, 
+                        line_color=dsty_line[pldata]['lcolor'],
+                        line_width=dsty_line[pldata]['lwidth'])
+        dict_bokmodel=defaultdict(dict) # for Bokeh.models.ColumnDataSource() & LabelSet()
+        # points with point size zero
+        dsty_pzero={'notes_open':{'size':0,'xoff':-5,'yoff':10},
+                                'frets':{'size':0,'xoff':0,'yoff':-8}}
+        for k,dicdata in self.plot_pzero.items(): # k='frets','notes_open'
+            # dicdata keys: 'string','fret','label'
+            dict_bokmodel['source'][k] = ColumnDataSource(data=dicdata)     
+            p.scatter(x='string', y='fret', size=dsty_pzero[k]['size'], 
+                    source=dict_bokmodel['source'][k])
+            dict_bokmodel['labels'][k] = LabelSet(x='string', y='fret', text='label', level='glyph',
+                        x_offset=dsty_pzero[k]['xoff'], y_offset=dsty_pzero[k]['yoff'], 
+                        source=dict_bokmodel['source'][k], render_mode='canvas')
+            p.add_layout(dict_bokmodel['labels'][k])
+        # points
+        dsty_p={'size':10,'xoff':7,'yoff':0}
+        for k,dicdata in self.plot_pzero.items(): # k='frets','notes_open'
+            # dicdata keys: 'string','fret','label'
+            dict_bokmodel['source']['p'] = ColumnDataSource(data=self.plot_p['notes'])     
+            p.scatter(x='string', y='fret', size=dsty_p['size'], 
+                    source=dict_bokmodel['source']['p'])
+            dict_bokmodel['labels']['p'] = LabelSet(x='string', y='fret', text='label', level='glyph',
+                        x_offset=dsty_p['xoff'], y_offset=dsty_p['yoff'], 
+                        source=dict_bokmodel['source']['p'], render_mode='canvas')
+            p.add_layout(dict_bokmodel['labels']['p'])
+        p.xaxis.visible = False  
+        p.yaxis.visible = False 
+        show(p) 
+
+
             
             
         
