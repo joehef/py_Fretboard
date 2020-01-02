@@ -25,7 +25,8 @@ class cl_fretb():
             chosca.numboard  >> a dictionary with note code numbers from which the fretboard was calculated
                                 Useful only in the beginning till the code is tested        
     '''
-    def __init__(self,fret_tup,tune_tup,scale_tup_untpose,tpose=0):
+    def __init__(self,fret_tup,tune_tup,scale_tup_untpose,tpose=0,title=''):
+        iroot=tpose+1
         # transpose the scale or chord
         li=[]
         for ele in scale_tup_untpose:
@@ -49,6 +50,7 @@ class cl_fretb():
         dict_fretb2={}
         dict_plotdata = defaultdict(list)
         dict_plotdata_open = defaultdict(list)
+        dict_plotdata_root=defaultdict(list)# only for plot highlight # labelling data is in other dicts
         fret_dict=defaultdict(list)
         li_plotstrings=[]
         stune=''
@@ -75,31 +77,46 @@ class cl_fretb():
                 litemp.append(itemp)
                 if itemp in scale_tup:
                     litemp2.append(dict_numnotes[itemp])
+                    
                     if fr==0:
                         dict_plotdata_open['label'].append(dict_numnotes[itemp])
                         dict_plotdata_open['fret'].append(fr)
                         dict_plotdata_open['string'].append(nst)
+                        if itemp==iroot:# for highlighting root notes
+                            dict_plotdata_root['label'].append('')
+                            dict_plotdata_root['fret'].append(fr)
+                            dict_plotdata_root['string'].append(nst)
                     else:
                         dict_plotdata['label'].append(dict_numnotes[itemp])
                         dict_plotdata['fret'].append(fr-finger)
                         dict_plotdata['string'].append(nst)
+                        if itemp==iroot:# for highlighting root notes
+                            dict_plotdata_root['label'].append('')
+                            dict_plotdata_root['fret'].append(fr-finger)
+                            dict_plotdata_root['string'].append(nst)
                 else:
                     litemp2.append(' ')
                     
             dict_fretb[nst]=litemp
             dict_fretb2[str(nst)+'_'+stemp]=litemp2   
+
         self.tuning=stune
         self.fretboard=dict_fretb2
         self.numboard=dict_fretb
-        # blank data error fix
-        if len(dict_plotdata_open)==0:
+        # Open notes and fret labels
+        if len(dict_plotdata_open)==0:# blank data error fix
             dict_plotdata_open={'label':[], 'fret':[], 'string':[]}
         self.plot_pzero={'notes_open':dict_plotdata_open,'frets':fret_dict}
-        # blank data error fix
-        if len(dict_plotdata)==0:
+        # notes to be played
+        if len(dict_plotdata)==0:# blank data error fix
             dict_plotdata={'label':[], 'fret':[], 'string':[]}
-        self.plot_p={'notes':dict_plotdata}
-        
+         # root data
+        if len(dict_plotdata_root)==0:
+            dict_plotdata_root={'label':[], 'fret':[], 'string':[]}    
+        #notes and root notes
+        self.plot_p={'notes':dict_plotdata,'root':dict_plotdata_root}
+       
+        #
         li_plotfrets=[]
         fr=fretstart-nut
         li_plotfrets.append(((1,nst),(fr,fr)))
@@ -107,6 +124,10 @@ class cl_fretb():
             li_plotfrets.append(((1,nst),(fr,fr)))
 
         self.plot_lines={'strings':li_plotstrings,'frets':li_plotfrets}
+        # TITLE
+        title='Root = {} ; '.format(dict_numnotes[tpose+1])+title
+        title+='\n Tuning : {} , Active frets : {}=>{}'.format(self.tuning,self.fretstart,self.fretlast)
+        self.title=title
     def print_fret(self):
         
         print('Number of strings : ',self.nstrings)
@@ -120,19 +141,17 @@ class cl_fretb():
             for k,li in self.fretboard.items():
                 print(li[fr],end=' | ')
             print('')
-    def bokplot(self,nhtml=True):
-        from bokeh.plotting import figure, show
+    def bok(self):
+        '''
+        doesn't plot but returns a bokeh plot object ready to be plotted
+        '''
+        from bokeh.plotting import figure
         from bokeh.models import ColumnDataSource, LabelSet, Label
-        if nhtml:
-            from bokeh.plotting import output_file
-            output_file("output.html")
-        else:
-            from bokeh.plotting import output_notebook
-        plottitle='Tuning : {} , Active frets : {}=>{}'.format(self.tuning,self.fretstart,self.fretlast)
+
         # grid lines : strings and frets
         dsty_line={'strings':{'lcolor':'#111111','lwidth':2},
                         'frets':{'lcolor':'#111111','lwidth':1}}
-        p = figure(title=plottitle,y_range=(self.fretlast+0.5,self.fretstart-0.5))
+        p = figure(title=self.title,y_range=(self.fretlast+0.5,self.fretstart-0.5))
         for pldata in ['strings','frets']:
             for st in self.plot_lines[pldata]:
                 x,y=st
@@ -152,23 +171,47 @@ class cl_fretb():
                         x_offset=dsty_pzero[k]['xoff'], y_offset=dsty_pzero[k]['yoff'], 
                         source=dict_bokmodel['source'][k], render_mode='canvas')
             p.add_layout(dict_bokmodel['labels'][k])
-        # points
-        dsty_p={'size':10,'xoff':7,'yoff':0}
-        for k,dicdata in self.plot_pzero.items(): # k='frets','notes_open'
+        # points self.plot_p=
+        dsty_p={'notes':{'size':10,'xoff':7,'yoff':0,'col':'#009900','alf':0.99},
+                'root':{'size':25,'xoff':7,'yoff':0,'col':'#66FF00','alf':0.1}}
+        for k,dicdata in self.plot_p.items(): # 
             # dicdata keys: 'string','fret','label'
-            dict_bokmodel['source']['p'] = ColumnDataSource(data=self.plot_p['notes'])     
-            p.scatter(x='string', y='fret', size=dsty_p['size'], 
-                    source=dict_bokmodel['source']['p'])
-            dict_bokmodel['labels']['p'] = LabelSet(x='string', y='fret', text='label', level='glyph',
-                        x_offset=dsty_p['xoff'], y_offset=dsty_p['yoff'], 
-                        source=dict_bokmodel['source']['p'], render_mode='canvas')
-            p.add_layout(dict_bokmodel['labels']['p'])
+            dict_bokmodel['source'][k] = ColumnDataSource(data=dicdata)     
+            p.scatter(x='string', y='fret', size=dsty_p[k]['size'], 
+                    fill_color=dsty_p[k]['col'], fill_alpha=dsty_p[k]['alf'],
+                    source=dict_bokmodel['source'][k])
+            dict_bokmodel['labels'][k] = LabelSet(x='string', y='fret', text='label', level='glyph',
+                        x_offset=dsty_p[k]['xoff'], y_offset=dsty_p[k]['yoff'], 
+                        source=dict_bokmodel['source'][k], render_mode='canvas')
+            p.add_layout(dict_bokmodel['labels'][k])
         p.xaxis.visible = False  
         p.yaxis.visible = False 
-        show(p) 
-
-
+        return p
+    def bokplot(self,nhtml=False):
+        from bokeh.plotting import show
+        p=self.bok()
+        if nhtml:
+            from bokeh.plotting import output_file
+            output_file("output.html")
+        else:
+            from bokeh.plotting import output_notebook
+            output_notebook()
+        show(p)     
             
-            
-        
+def bokgrid(pgrid,nhtml=False):
+    '''
+    pgrid= [[p1, p2], [None, p3]]
+    '''
+    from bokeh.io import show
+    from bokeh.layouts import gridplot
+    if nhtml:
+        from bokeh.io import output_file
+        output_file("output.html")
+    else:
+        from bokeh.io import output_notebook
+        output_notebook()
+    # make a grid
+    grid = gridplot(pgrid)
+    # show the results
+    show(grid)     
         
