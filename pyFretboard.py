@@ -8,7 +8,19 @@ import numpy as np
 from collections import defaultdict
 from data_sc import *
 
-
+def validate_stune(strtune):
+    #first replace the double letter strings
+    for k,v in dict_notesnum.items():
+        if len(k)==2:
+            strtune=strtune.replace(k,'')
+    for k,v in dict_notesnum.items():
+        if len(k)==1:
+            strtune=strtune.replace(k,'')
+    if len(strtune)==0:
+        return True
+    else:
+        return False  
+    
 def stune_2tup(strtune):
     '''
     "C#CEGbB" => (2,1,5,7,12)
@@ -130,8 +142,11 @@ class cl_fretb():
         self.fretboard=dict_fretb2
         self.numboard=dict_fretb
         # Open notes and fret labels
-        if len(dict_plotdata_open)==0:# blank data error fix
-            dict_plotdata_open={'label':[], 'fret':[], 'string':[]}
+        dict_plotdata_open['label'].append('')
+        dict_plotdata_open['fret'].append(-0.9)
+        dict_plotdata_open['string'].append(self.nstrings +1)# to add space on the right
+        #if len(dict_plotdata_open)==0:# blank data error fix
+            #dict_plotdata_open={'label':[], 'fret':[], 'string':[]}
         self.plot_pzero={'notes_open':dict_plotdata_open,'frets':fret_dict}
         # notes to be played
         if len(dict_plotdata)==0:# blank data error fix
@@ -151,8 +166,8 @@ class cl_fretb():
 
         self.plot_lines={'strings':li_plotstrings,'frets':li_plotfrets}
         # TITLE
-        title='Root = {} ; '.format(dict_numnotes[tpose+1])+title
-        title+='\n Tuning : {} , Active frets : {}=>{}'.format(self.tuning,self.fretstart,self.fretlast)
+        #title='Root = {} ; '.format(dict_numnotes[tpose+1])+title
+        #title+='\n Tuning : {} , Active frets : {}=>{}'.format(self.tuning,self.fretstart,self.fretlast)
         self.title=title
     def print_fret(self):
         
@@ -178,7 +193,7 @@ class cl_fretb():
         dsty_line={'strings':{'lcolor':'#111111','lwidth':2},
                         'frets':{'lcolor':'#111111','lwidth':1}}
         p = figure(plot_width=w, plot_height=h,
-                    title=self.title,y_range=(self.fretlast+0.5,self.fretstart-0.5))
+                    title=self.title,y_range=(self.fretlast+0.5,self.fretstart-0.8))
         for pldata in ['strings','frets']:
             for st in self.plot_lines[pldata]:
                 x,y=st
@@ -213,6 +228,8 @@ class cl_fretb():
             p.add_layout(dict_bokmodel['labels'][k])
         p.xaxis.visible = False  
         p.yaxis.visible = False 
+        p.xgrid.visible = False
+        p.ygrid.visible = False
         return p
     def bokplot(self,w=400,h=600,nhtml=False):
         from bokeh.plotting import show
@@ -225,7 +242,7 @@ class cl_fretb():
             output_notebook()
         show(p)     
             
-def bokgrid(pgrid,nhtml=False):
+def bokgrid(pgrid,nhtml=False, hname=''):
     '''
     pgrid= [[p1, p2], [None, p3]]
     '''
@@ -233,67 +250,376 @@ def bokgrid(pgrid,nhtml=False):
     from bokeh.layouts import gridplot
     if nhtml:
         from bokeh.io import output_file
-        output_file("output.html")
+        output_file("fb_{}.html".format(hname))
     else:
         from bokeh.io import output_notebook
         output_notebook()
     # make a grid
     grid = gridplot(pgrid)
     # show the results
-    show(grid)     
-
-'''
-********************* TKinter section **********************************
-'''
-import tkinter as tk
-f='Courier 13 bold' #Arial
-#♣label formatting
-px,py=5,5   
-cdw=15
-my_window = tk.Tk()
-
-# geometry width x height + xposition +yposition
-my_window.geometry('600x200+200+200')
-
-# row 0
-lab_title=tk.Label(my_window, text='Title',font=f)
-lab_title.grid(row=0,column=0,padx=px, pady=py)
-en_title=tk.Entry(my_window,width=cdw*2+5,font=f)
-en_title.grid(row=0,column=1,columnspan=2,padx=px, pady=py)
-# row 1
-lab_scachor=tk.Label(my_window, text='Scales or Chords',font=f)
-lab_scachor.grid(row=1,column=0,padx=px, pady=py)
-cb_scachor=tk.ttk.Combobox(width=cdw,values = ['Scales [2]','Chords[3]'],font=f)
-cb_scachor.grid(row=1,column=1,padx=px, pady=py)
-cb_scachor.current(0) # selects the first value as default
-cb_scachor.event_generate("<<ComboboxSelect>>") # works with the prev line
-
-cb_sccat=tk.ttk.Combobox(width=cdw,values = ['Scales','Chords'],font=f)
-cb_sccat.grid(row=1,column=2,padx=px, pady=py)
-cb_sccat.current(0) # selects the first value as default
-cb_sccat.event_generate("<<ComboboxSelect>>") # works with the prev line
-
-# row 2
-lab_tune=tk.Label(my_window, text='Tuning',font=f)
-lab_tune.grid(row=2,column=0,padx=px, pady=py)
-cb_tune=tk.ttk.Combobox(width=cdw,values = ['Scales','Chords'],font=f)
-cb_tune.grid(row=2,column=1,padx=px, pady=py)
-var1=tk.StringVar()
-en_tune=tk.Entry(my_window,width=cdw*2+5,font=f)
-en_tune.grid(row=2,column=2,padx=px, pady=py)
+    show(grid) 
 
 
-#Label 
-but_1=tk.Button(my_window,
-           borderwidth=2,
-           text='Click for Hello',
-           font='Arial 12 bold',
-           padx=10,)
-           #command=add_label)
-
-but_1.grid(row=8,column=0)
-
-# title
-my_window.title('My Scaleboard')
-#entry_1.focus()
-my_window.mainloop()
+if __name__ == '__main__':
+    # tkinter imports
+    from tkinter import *
+    from tkinter import ttk
+    from PIL import ImageTk, Image
+    '''
+    ********************* Bokeh Tkinter connecting section ******************
+    '''
+    def tk2bok(dict_vals):
+        '''
+        dict_vals.keys =['title',
+                         'tune_cb','tune_ent',
+                         'fret1_cb','fret2_cb',
+                          'scorchor','sc_cat',
+                          
+                          'desc',
+                         'root1','sq1',
+                         'root2','sq2',
+                         'root3','sq3']
+        '''
+        dtup={}
+        # CHECK TUNING
+        if validate_stune(dict_vals['tune_ent'])==False:
+            # message box display
+            messagebox.showerror("Custom tuning invalid", 
+                                 "{} will be used instead".format(dict_tunings[dict_vals['tune_cb']]))
+            dict_vals['tune_ent']=dict_vals['tune_cb'].split('_')[0] # Eg DADF#AD_OpenD_Guitar
+        if dict_vals['title']=="":
+            stitle='Tuning={}, '.format(dict_vals['tune_ent'])
+        else:
+            stitle=dict_vals['title']+ ', Tuning={}, '.format(dict_vals['tune_ent'])
+        dtup['title']=stitle
+        dtup['tun']=stune_2tup(dict_vals['tune_ent'])
+        
+        #------Frets check
+        for k in ['fret1_cb','fret2_cb']:
+            dict_vals[k]=int(dict_vals[k])
+        if dict_vals['fret1_cb']>dict_vals['fret2_cb']-2:
+            dict_vals['fret2_cb']=dict_vals['fret1_cb']+3
+        dtup['fr']=(dict_vals['fret1_cb'],dict_vals['fret2_cb'])
+        dtup['tpose']=dict_notesnum[dict_vals['root1']]-1
+        # dict_definitions 1st level keys ='scales' or chords    : dict_vals['scorchor']
+        # 2nd level keys = categories Eg  w_western, mr_melakarta, jr_janya
+        # 3rd level keys = scale names Eg  'mr21_Keeravani' 'w007_Dorian_mode'
+        # 4th level keys = asc/ desc /melakarta / melakarta_num
+        if dict_vals["scorchor"] == "scales":
+            temp_scale_dict=dict_definitions['scales'][dict_vals['sc_cat']][dict_vals['sq1']]
+            dtup['sq']=temp_scale_dict['asc']
+            title_full=dict_vals['title']+'_'+dict_vals['root1']+'_' +dict_vals['sc_cat'].split('_')[1]+'_'
+            title_full+=dict_vals['sq1'].split('_',1)[1] +'; Tuning=' +dict_vals['tune_ent']
+            fretbod1=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq'],dtup['tpose'],title_full)
+            if ('desc' in temp_scale_dict.keys()) and (dict_vals['desc']=='desc'):
+                dtup['sq2']=temp_scale_dict['desc']
+                title_full=dict_vals['title']+'_'+dict_vals['root1']+'_Desc_' +dict_vals['sc_cat'].split('_')[1]+'_'
+                title_full+=dict_vals['sq1'].split('_',1)[1] +'; Tuning=' +dict_vals['tune_ent']
+                fretbod2=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq2'],dtup['tpose'],title_full)
+                bokgrid([[fretbod1.bok(450,650),fretbod2.bok(450,650)]],True,dict_vals['title'])
+            else:
+                if dict_vals['sq2']=='':
+                    bokgrid([[fretbod1.bok(550,750)]],True,dict_vals['title'])
+                else:
+                    dtup['tpose2']=dict_notesnum[dict_vals['root2']]-1
+                    temp_scale_dict=dict_definitions['scales'][dict_vals['sc_cat']][dict_vals['sq2']]
+                    dtup['sq2']=temp_scale_dict['asc']
+                    title_full=dict_vals['title']+'_'+dict_vals['root2']+'_' +dict_vals['sc_cat'].split('_')[1]+'_'
+                    title_full+=dict_vals['sq2'].split('_',1)[1] +'; Tuning=' + dict_vals['tune_ent']
+                    fretbod2=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq2'],dtup['tpose2'],title_full)
+                    bokgrid([[fretbod1.bok(450,650),fretbod2.bok(450,650)]],True,dict_vals['title'])
+        if dict_vals["scorchor"] == "chords": # chords
+            # 2nd level keys = categories Eg  common, quality
+            # 3rd level keys = quality Eg  'Maj' 'm', 'm7'
+            dtup['sq']=dict_definitions['chords'][dict_vals['sc_cat']][dict_vals['sq1']]
+            title_full=dict_vals['title']+'_'+dict_vals['root1']+' '+dict_vals['sq1'] +'; Tuning='
+            title_full+=dict_vals['tune_ent']
+            fretbod1=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq'],dtup['tpose'],title_full)
+            if (dict_vals['sq2']=='') & (dict_vals['sq3']==''):
+                bokgrid([[fretbod1.bok(550,750)]],True,dict_vals['title'])
+            elif (dict_vals['sq2']!='') & (dict_vals['sq3']==''):
+                dtup['tpose2']=dict_notesnum[dict_vals['root2']]-1
+                dtup['sq2']=dict_definitions['chords'][dict_vals['sc_cat']][dict_vals['sq2']]
+                title_full=dict_vals['title']+'_'+dict_vals['root2']+' '+dict_vals['sq2'] +'; Tuning='
+                title_full+=dict_vals['tune_ent']
+                fretbod2=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq2'],dtup['tpose2'],title_full)
+                bokgrid([[fretbod1.bok(450,650),fretbod2.bok(450,650)]],True,dict_vals['title'])
+            elif (dict_vals['sq2']=='') & (dict_vals['sq3']!=''):
+                dtup['tpose3']=dict_notesnum[dict_vals['root3']]-1
+                dtup['sq3']=dict_definitions['chords'][dict_vals['sc_cat']][dict_vals['sq3']]
+                title_full=dict_vals['title']+'_'+dict_vals['root3']+' '+dict_vals['sq3'] +'; Tuning='
+                title_full+=dict_vals['tune_ent']
+                fretbod3=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq3'],dtup['tpose3'],title_full)
+                bokgrid([[fretbod1.bok(450,650),fretbod3.bok(450,650)]],True,dict_vals['title'])
+            else:
+                dtup['tpose2']=dict_notesnum[dict_vals['root2']]-1
+                dtup['sq2']=dict_definitions['chords'][dict_vals['sc_cat']][dict_vals['sq2']]
+                title_full=dict_vals['title']+'_'+dict_vals['root2']+' '+dict_vals['sq2'] +'; Tuning='
+                title_full+=dict_vals['tune_ent']
+                fretbod2=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq2'],dtup['tpose2'],title_full)
+                # # 3
+                dtup['tpose3']=dict_notesnum[dict_vals['root3']]-1
+                dtup['sq3']=dict_definitions['chords'][dict_vals['sc_cat']][dict_vals['sq3']]
+                title_full=dict_vals['title']+'_'+dict_vals['root3']+' '+dict_vals['sq3'] +'; Tuning='
+                title_full+=dict_vals['tune_ent']
+                fretbod3=cl_fretb(dtup['fr'],dtup['tun'],dtup['sq3'],dtup['tpose3'],title_full)
+                bokgrid([[fretbod1.bok(300,500),fretbod2.bok(300,500),fretbod3.bok(300,500)]],True,dict_vals['title'])
+    
+    
+    '''
+    ********************* TKinter section **********************************
+    '''
+    
+    f='Courier 13 bold' #Arial
+    f2='Arial 11' # normal
+    fsm='Arial 9 italic' # normal
+    f3='Arial 13 bold' #
+    #♣label formatting
+    px,py=5,5   
+    cdw=15
+    
+    my_window = Tk()
+    '''
+    class tab_frame(LabelFrame):
+        def __init__(self, parent,fbnum,sinfo,cblist=['desc','ignore desc'], 
+                     *args, **kwargs):
+            LabelFrame.__init__(self, parent)
+            self.fretB=fbnum
+            lab=Label(self,text='Fretboard # {}'.format(fbnum))
+            lab.grid(column=0, row=0)
+            #♠ row 4-3
+            lab_cinf=Label(my_window, text=sinfo,font=fsm)
+            lab_cinf.grid(row=1,column=0,padx=px, pady=py)
+            # row 5-3
+            if isinstance(cblist,list):
+                cb_desc=ttk.Combobox(width=cdw,values = cblist,font=f)
+                cb_desc.grid(row=2,column=1,padx=px, pady=py)
+                cb_desc.current(0) # selects the first value as default
+                cb_desc.event_generate("<<ComboboxSelect>>") # works with the prev line
+            else:
+                lab_desc=Label(my_window, text=' ',font=f)
+                lab_desc.grid(row=2,column=0,padx=px, pady=py)
+            
+            # row 6-3 Labels
+            lab_r=Label(my_window, text='Root',font=f2)
+            lab_r.grid(row=3,column=0,padx=px, pady=py)       
+            # row 7-3 cb root notes
+            liscales=[v for k,v in dict_numnotes.items()]
+            cb_r=ttk.Combobox(width=cdw,values = liscales,font=f)
+            cb_r.grid(row=4,column=0,padx=px, pady=py)
+            cb_r.current(0) # selects the first value as default
+            cb_r.event_generate("<<ComboboxSelect>>") # works with the prev line
+            # row 8-3 Labels
+            t='Scale / Quality'
+            lab_sc=Label(my_window, text=t,font=f2)
+            lab_sc.grid(row=5,column=0,padx=px, pady=py)
+    
+            # row 9 cb scale
+            liscales=['c','temp']
+            cb_sc=ttk.Combobox(width=cdw,values = liscales,font=f)
+            cb_sc.grid(row=6,column=0,padx=px, pady=py)
+    
+    
+        def getvals(self):
+            vals={}
+    
+            return vals
+            #print(vals)
+        '''
+    # geometry width x height + xposition +yposition
+    my_window.geometry('580x510+200+200')
+    
+    # row 0
+    lab_title=Label(my_window, text='Title',font=f)
+    lab_title.grid(row=0,column=0,padx=px, pady=py)
+    en_title=Entry(my_window,width=cdw*2+5,font=f)
+    en_title.grid(row=0,column=1,columnspan=2,padx=px, pady=py)
+    # row 1 Tuning
+    lab_tune=Label(my_window, text='Tuning',font=f)
+    lab_tune.grid(row=1,column=0,padx=px, pady=py)
+    cb_tune=ttk.Combobox(width=cdw,values = list(dict_tunings.keys()),font=f)
+    cb_tune.grid(row=1,column=1,padx=px, pady=py)
+    en_tune=Entry(my_window,width=cdw+2,font=f)
+    en_tune.grid(row=1,column=2,padx=px, pady=py)
+    def UpdTuning(event):
+        en_tune.delete(0, END)
+        en_tune.insert(0, cb_tune.get().split('_')[0])
+    cb_tune.bind("<<ComboboxSelected>>",UpdTuning)
+    cb_tune.current(0) # selects the first value as default
+    cb_tune.event_generate("<<ComboboxSelected>>")# works with the previous line
+    # frets row 2
+    ro=2
+    lifret=[i for i in range(16)]
+    lab_fret=Label(my_window, text='Frets start - end',font=f)
+    lab_fret.grid(row=ro,column=0,padx=px, pady=py)
+    cb_fr1=ttk.Combobox(width=cdw,values = lifret,font=f)
+    cb_fr1.grid(row=ro,column=1,padx=px, pady=py)
+    cb_fr1.current(0) # selects the first value as default
+    cb_fr1.event_generate("<<ComboboxSelect>>") # works with the prev line
+    cb_fr2=ttk.Combobox(width=cdw,values = lifret,font=f)
+    cb_fr2.grid(row=ro,column=2,padx=px, pady=py)
+    cb_fr2.current(7) # selects the 8 as default
+    cb_fr2.event_generate("<<ComboboxSelect>>") # works with the prev line
+    
+    
+    # row 10 cb scale
+    ro=10
+    cb_sq1=ttk.Combobox(width=cdw,font=f)
+    cb_sq1.grid(row=ro,column=0,padx=px, pady=py)
+    cb_sq2=ttk.Combobox(width=cdw,font=f)
+    cb_sq2.grid(row=ro,column=1,padx=px, pady=py)
+    cb_sq3=ttk.Combobox(width=cdw,font=f)
+    cb_sq3.grid(row=ro,column=2,padx=px, pady=py)
+    # ro=3
+    ro=3
+    lab_scachor=Label(my_window, text='Scales or Chords',font=f)
+    lab_scachor.grid(row=ro,column=0,padx=px, pady=py)
+    #category
+    cb_cat=ttk.Combobox(width=cdw,font=f)
+    cb_cat.grid(row=ro,column=2,padx=px, pady=py)
+    def UpdscalesNames(event):
+        sc=cb_scachor.get()
+        cat=cb_cat.get()
+        liscales=list(dict_definitions[sc][cat].keys())
+        cb_sq1['values'] = liscales
+        cb_sq1.current(0) # selects the first value as default
+        cb_sq1.event_generate("<<ComboboxSelected>>") # works with the prev line
+        cb_sq2['values'] = liscales
+        cb_sq3['values'] = liscales
+    cb_cat.bind('<<ComboboxSelected>>',UpdscalesNames) 
+    cb_scachor=ttk.Combobox(width=cdw,values = ['scales','chords'],font=f)
+    cb_scachor.grid(row=ro,column=1,padx=px, pady=py)
+    def UpdCategory(event):
+        cb_cat['values'] = list(dict_definitions[cb_scachor.get()].keys())
+        cb_cat.current(0) # selects the first value as default
+        cb_cat.event_generate("<<ComboboxSelected>>")# works with the previous line
+    
+    cb_scachor.bind('<<ComboboxSelected>>',UpdCategory) 
+    cb_scachor.current(0) # selects the first value as default
+    cb_scachor.event_generate("<<ComboboxSelected>>") # works with the prev line
+    
+    
+    
+    '''
+    fbnum=1
+    sinfo=' '
+    cblist=' '
+    fram1=tab_frame(my_window,fbnum,sinfo,cblist)
+    fram1.grid(row=3,column=fbnum-1)
+    #
+    fbnum=2
+    sinfo='Use desc for viewing Descending'
+    cblist=['desc','ignore desc']
+    fram1=tab_frame(my_window,fbnum,sinfo,cblist)
+    fram1.grid(row=3,column=fbnum-1)
+    # 3
+    fbnum=3
+    sinfo='works for chords only'
+    cblist=' '
+    fram1=tab_frame(my_window,fbnum,sinfo,cblist)
+    fram1.grid(row=3,column=fbnum-1)
+    '''
+    #  Labels
+    ro=4
+    lab_fb=Label(my_window, text='FBoard 1',font=f)
+    lab_fb.grid(row=ro,column=0,padx=px, pady=py)
+    lab_fb2=Label(my_window, text='FBoard 2',font=f)
+    lab_fb2.grid(row=ro,column=1,padx=px, pady=py)
+    lab_fb3=Label(my_window, text='FBoard 3',font=f)
+    lab_fb3.grid(row=ro,column=2,padx=px, pady=py)
+    
+    #♠ row 5
+    ro=5
+    lab_c2inf=Label(my_window, text='Use desc for viewing Descending',font=fsm)
+    lab_c2inf.grid(row=ro,column=1,padx=px, pady=py)
+    lab_c3inf=Label(my_window, text='works for chords only',font=fsm)
+    lab_c3inf.grid(row=ro,column=2,padx=px, pady=py)
+    # row 6
+    ro=6
+    cb_desc=ttk.Combobox(width=cdw,values = ['desc','ignore desc'],font=f)
+    cb_desc.grid(row=ro,column=1,padx=px, pady=py)
+    cb_desc.current(0) # selects the first value as default
+    cb_desc.event_generate("<<ComboboxSelect>>") # works with the prev line
+    
+    #  Labels
+    ro=7
+    lab_r=Label(my_window, text='Root',font=f2)
+    lab_r.grid(row=ro,column=0,padx=px, pady=py)
+    lab_r2=Label(my_window, text='Root',font=f2)
+    lab_r2.grid(row=ro,column=1,padx=px, pady=py)
+    lab_r3=Label(my_window, text='Root',font=f2)
+    lab_r3.grid(row=ro,column=2,padx=px, pady=py)
+    
+    
+    # row 8 cb root notes
+    ro=8
+    liscales=[v for k,v in dict_numnotes.items()]
+    cb_r1=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r1.grid(row=ro,column=0,padx=px, pady=py)
+    cb_r1.current(0) # selects the first value as default
+    cb_r1.event_generate("<<ComboboxSelect>>") # works with the prev line
+    cb_r2=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r2.grid(row=ro,column=1,padx=px, pady=py)
+    cb_r2.current(0) # selects the first value as default
+    cb_r2.event_generate("<<ComboboxSelect>>") # works with the prev line
+    cb_r3=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r3.grid(row=ro,column=2,padx=px, pady=py)
+    cb_r3.current(0) # selects the first value as default
+    cb_r3.event_generate("<<ComboboxSelect>>") # works with the prev line
+    # row 9 Labels
+    ro=9
+    t='Scale / Quality'
+    lab_sq=Label(my_window, text=t,font=f2)
+    lab_sq.grid(row=ro,column=0,padx=px, pady=py)
+    lab_sq2=Label(my_window, text=t,font=f2)
+    lab_sq2.grid(row=ro,column=1,padx=px, pady=py)
+    lab_sq3=Label(my_window, text=t,font=f2)
+    lab_sq3.grid(row=ro,column=2,padx=px, pady=py)
+    def get_vals():
+        dict_vals={}
+        dict_vals['title']=en_title.get()
+        dict_vals['tune_cb']=cb_tune.get()
+        dict_vals['tune_ent']=en_tune.get()
+        dict_vals['fret1_cb']=cb_fr1.get()
+        dict_vals['fret2_cb']=cb_fr2.get()
+        dict_vals['scorchor']=cb_scachor.get()
+        dict_vals['sc_cat']=cb_cat.get()
+        dict_vals['desc']=cb_desc.get()
+        dict_vals['root1']=cb_r1.get()
+        dict_vals['sq1']=cb_sq1.get()
+        dict_vals['root2']=cb_r2.get()
+        dict_vals['sq2']=cb_sq2.get()
+        dict_vals['root3']=cb_r3.get()
+        dict_vals['sq3']=cb_sq3.get()
+        tk2bok(dict_vals)
+        print(dict_vals)
+        
+        
+    
+    #buttons
+    ro=12
+    but_1=Button(my_window,
+               borderwidth=2,
+               text='Close',
+               font=f3,
+               padx=11, pady=2,
+               command=my_window.destroy)
+    
+    but_1.grid(row=ro,column=0)
+    but_2=Button(my_window,
+               borderwidth=2,
+               text='Show',
+               font=f3,
+               padx=10, pady=2,
+               command=get_vals)
+    
+    but_2.grid(row=ro,column=1)
+    #lab_t=Label(my_window, text=' ',font=f2)
+    #lab_t.grid(row=10,column=1,padx=px, pady=py)
+    img = ImageTk.PhotoImage(Image.open("jh100.png"))
+    imglabel=Label(my_window,image=img)
+    imglabel.grid(row=11,column=2, rowspan=2)
+    # title
+    my_window.title('My Fretboard')
+    #entry_1.focus()
+    my_window.mainloop()

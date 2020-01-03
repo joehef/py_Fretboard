@@ -15,15 +15,15 @@ dict_numita = {1: 'Do', 2: 'Do#', 3: 'Re', 4: 'Re#', 5: 'Mi', 6: 'Fa',
                  7: 'Fa#', 8: 'Sol', 9: 'Sol#', 10: 'La', 11: 'La#', 12: 'Si'}
 
 dict_tunings={
-            'Guitar_EADGBE': (5,10,3,8,12,5),
-            'Guitar_OpenD_DADF#AD':(3,10,3,7,10,3),
-            'Guitar_OpenG_DGDGBD':(3,8,3,8,12,3),
-            'Guitar_DropD_DADGBE':(3,10,3,8,12,5),
-            'Guitar_Celtic_DADGAD':(3,10,3,8,10,3),
-            'Mandolin_GDAE':(8,3,10,5),
-            'Mandola_CGDA':(1,8,3,10),
-            'IrishBouzouki_GDAD':(8,3,10,3),
-            'GreekLute_DGDA':(3,8,3,10),
+            'EADGBE_Guitar': (5,10,3,8,12,5),
+            'DADF#AD_OpenD_Guitar':(3,10,3,7,10,3),
+            'DGDGBD_OpenG_Guitar':(3,8,3,8,12,3),
+            'DADGBE_DropD_Guitar':(3,10,3,8,12,5),
+            'DADGAD_Celtic_Guitar':(3,10,3,8,10,3),
+            'GDAE_Mandolin':(8,3,10,5),
+            'CGDA_Mandola':(1,8,3,10),
+            'GDAD_IrishBouzouki':(8,3,10,3),
+            'DGDA_GreekLute':(3,8,3,10),
 }
 dict_scales={
             'Major': {'asc':(1,3,5,6,8,10,12),'desc':()},
@@ -34,26 +34,8 @@ dict_scales={
             'HungarianMajor': {'asc':(1,4,5,7,8,10,11),'desc':()},
             'Persian': {'asc':(1,2,5,6,7,9,12),'desc':()},
             'Enigmatic': {'asc':(1,2,5,7,9,11,12),'desc':()},
-
-
-
 }
-dict_chordquality={
-            'Maj':(1,5,8),'m':(1,4,8),
-            '7':(1,5,8,11),'9':(1,3,5,8,11),'11':(1,3,5,6,8,11),'13':(1,5,10,11),
-            'm7':(1,4,8,11),'m9':(1,3,4,11),'m11':(1,4,6,8,11),'m13':(1,4,8,10,11),
-            'Maj7':(1,5,8,12),'Maj9':(1,3,5,8,12),'Maj13':(1,3,5,8,10,12),
-            '6':(1,5,8,10),'m6':(1,4,8,10),
-            '+':(1,5,9),'dim':(1,4,7,10),
-            'dim7':(1,4,7,10),'7+':(1,5,9,11),'9+':(1,3,5,9,11),
-            'sus4':(1,6,8),'sus2':(1,3,8),'7sus4':(1,6,8,11),'9sus4':(1,3,6,8,11),
-            'add9':(1,3,5,8),'m(add9)':(1,3,4,8),
-            '6/9':(1,3,5,10),'7#9':(1,4,5,8,11),
-            '7b5':(1,5,7,11),'m7b5':(1,4,7,11),
-            '7b9':(1,2,5,8,11),'9b5':(1,3,5,7,11),
-            '5':(1,8),
-            '2,#4':(1,3,7),'2, 4':(1,3,6)          
-            }
+
 dict_carnum={'sa':1,'r1':2,'r2':3,'r3':4,
                     'g1':3,'g2':4,'g3':5,
                     'm1':6,'m2':7,'pa':8,
@@ -66,16 +48,42 @@ def f_numscaledict():
    '''
    from collections import defaultdict
    dict_scaleinv=defaultdict(dict)
+   '''
    for k in dict_scaledefin.keys():
       prefix=k.split('_')[0]# 'w_western', mr_melakarta, jr_janya
       for subkey in dict_scaledefin[k].keys():
          num=subkey.split('_')[0].replace(prefix,'')# 'w001_Acoustic''w003_AlteredorSuper_Locrian'
          num=int(num)
-         dict_scaleinv[k][num]=subkey
+         dict_scaleinv[k][num]=subkey'''
    return dict_scaleinv
 
    
-dict_scaledefin={ 'w_western': {'w001_Acoustic': {'asc': (1, 3, 5, 7, 8, 10, 11)}, 'w002_Aeolian_modeornatural_minor': {'asc': (1, 3, 4, 6, 8, 9, 11),  'desc': ()},
+dict_definitions={ 'chords':{'common':{'Maj':(1,5,8),'m':(1,4,8),
+                                    '7':(1,5,8,11),'9':(1,3,5,8,11),
+                                    'm7':(1,4,8,11),'m9':(1,3,4,11),
+                                    'Maj7':(1,5,8,12),
+                                    '6':(1,5,8,10),'m6':(1,4,8,10),
+                                    '+':(1,5,9),'dim':(1,4,7,10),
+                                    'sus4':(1,6,8),},
+                              'quality':{
+                                    'Maj':(1,5,8),'m':(1,4,8),
+                                    '7':(1,5,8,11),'9':(1,3,5,8,11),'11':(1,3,5,6,8,11),'13':(1,5,10,11),
+                                    'm7':(1,4,8,11),'m9':(1,3,4,11),'m11':(1,4,6,8,11),'m13':(1,4,8,10,11),
+                                    'Maj7':(1,5,8,12),'Maj9':(1,3,5,8,12),'Maj13':(1,3,5,8,10,12),
+                                    '6':(1,5,8,10),'m6':(1,4,8,10),
+                                    '+':(1,5,9),'dim':(1,4,7,10),
+                                    'dim7':(1,4,7,10),'7+':(1,5,9,11),'9+':(1,3,5,9,11),
+                                    'sus4':(1,6,8),'sus2':(1,3,8),'7sus4':(1,6,8,11),'9sus4':(1,3,6,8,11),
+                                    'add9':(1,3,5,8),'m(add9)':(1,3,4,8),
+                                    '6/9':(1,3,5,10),'7#9':(1,4,5,8,11),
+                                    '7b5':(1,5,7,11),'m7b5':(1,4,7,11),
+                                    '7b9':(1,2,5,8,11),'9b5':(1,3,5,7,11),
+                                    '5':(1,8),
+                                    '2,#4':(1,3,7),'2, 4':(1,3,6)}
+
+                           },
+                  'scales':{
+                              'w_western': {'w001_Acoustic': {'asc': (1, 3, 5, 7, 8, 10, 11)}, 'w002_Aeolian_modeornatural_minor': {'asc': (1, 3, 4, 6, 8, 9, 11),  'desc': ()},
                               'w003_AlteredorSuper_Locrian': {'asc': (1, 2, 4, 5, 7, 9, 11)}, 'w004_Augmented': {'asc': (1, 4, 5, 8, 9, 12)},
                               'w005_Bebop_dominant': {'asc': (1, 3, 5, 6, 8, 10, 11, 12)}, 'w006_Blues': {'asc': (1, 4, 6, 7, 8, 11)},
                               'w007_Dorian_mode': {'asc': (1, 3, 4, 6, 8, 10, 11)}, 'w008_Double_harmonic': {'asc': (1, 2, 5, 6, 8, 9, 12)},
@@ -347,6 +355,7 @@ dict_scaledefin={ 'w_western': {'w001_Acoustic': {'asc': (1, 3, 5, 7, 8, 10, 11)
                         "jr0905_Marakathagowla" : {'asc': (1, 4, 7, 8, 10, 11), 'desc': (1, 11, 10, 8, 7, 5, 4), 'melakarta': 'Nāsikabhooshhani', 'melakarta_num': 70},"jr0906_Thilakamandari" : {'asc': (1, 4, 7, 8, 10), 'desc': (1, 10, 8, 7, 5, 4), 'melakarta': 'Nāsikabhooshhani', 'melakarta_num': 70},"jr0907_Kusumakaram" : {'asc': (1, 4, 5, 7, 8, 10, 12), 'desc': (1, 12, 10, 8, 7, 5, 4), 'melakarta': 'Kosalam', 'melakarta_num': 71},"jr0908_Ayodhya" : {'asc': (1, 5, 7, 8, 12), 'desc': (1, 10, 8, 7, 5, 7, 4), 'melakarta': 'Kosalam', 'melakarta_num': 71},
                         "jr0909_Rasamanjari" : {'asc': (1, 4, 5, 7, 8, 11, 12), 'desc': (1, 12, 11, 8, 7, 5, 4), 'melakarta': 'Rasikapriya', 'melakarta_num': 72},"jr0910_Hamsagiri" : {'asc': (1, 4, 5, 7, 8, 11, 12), 'desc': (1, 12, 8, 11, 12, 8, 7, 5), 'melakarta': 'Rasikapriya', 'melakarta_num': 72},"jr0911_Ishtarangini" : {'asc': (1, 4, 7, 8, 12), 'desc': (1, 12, 11, 8, 7, 5, 4), 'melakarta': 'Rasikapriya', 'melakarta_num': 72},"jr0912_Nagagiri" : {'asc': (1, 5, 7, 8, 10, 8), 'desc': (1, 10, 8, 7, 5), 'melakarta': 'Rasikapriya', 'melakarta_num': 72},
                         }
+                  }
 
                   }
 
