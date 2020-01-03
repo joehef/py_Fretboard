@@ -1,4 +1,4 @@
-# py_scalechord
+# py_Fretboard
 Python fretboard diagrams for scales and chords
 
 ### For now only useful to print out single chord sheets in Jupyter notebook
