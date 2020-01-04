@@ -4,7 +4,6 @@
 @author: H Josiah Raj
 2011
 """
-import numpy as np
 from collections import defaultdict
 from data_sc import *
 
@@ -262,8 +261,8 @@ def bokgrid(pgrid,nhtml=False, hname=''):
 
 if __name__ == '__main__':
     # tkinter imports
-    from tkinter import *
-    from tkinter import ttk
+    from tkinter import messagebox, Entry, Label, LabelFrame, Button, Tk, END
+    from tkinter.ttk import Combobox
     from PIL import ImageTk, Image
     '''
     ********************* Bokeh Tkinter connecting section ******************
@@ -392,7 +391,7 @@ if __name__ == '__main__':
             lab_cinf.grid(row=1,column=0,padx=px, pady=py)
             # row 5-3
             if isinstance(cblist,list):
-                cb_desc=ttk.Combobox(width=cdw,values = cblist,font=f)
+                cb_desc=Combobox(width=cdw,values = cblist,font=f)
                 cb_desc.grid(row=2,column=1,padx=px, pady=py)
                 cb_desc.current(0) # selects the first value as default
                 cb_desc.event_generate("<<ComboboxSelect>>") # works with the prev line
@@ -405,7 +404,7 @@ if __name__ == '__main__':
             lab_r.grid(row=3,column=0,padx=px, pady=py)       
             # row 7-3 cb root notes
             liscales=[v for k,v in dict_numnotes.items()]
-            cb_r=ttk.Combobox(width=cdw,values = liscales,font=f)
+            cb_r=Combobox(width=cdw,values = liscales,font=f)
             cb_r.grid(row=4,column=0,padx=px, pady=py)
             cb_r.current(0) # selects the first value as default
             cb_r.event_generate("<<ComboboxSelect>>") # works with the prev line
@@ -416,7 +415,7 @@ if __name__ == '__main__':
     
             # row 9 cb scale
             liscales=['c','temp']
-            cb_sc=ttk.Combobox(width=cdw,values = liscales,font=f)
+            cb_sc=Combobox(width=cdw,values = liscales,font=f)
             cb_sc.grid(row=6,column=0,padx=px, pady=py)
     
     
@@ -437,7 +436,7 @@ if __name__ == '__main__':
     # row 1 Tuning
     lab_tune=Label(my_window, text='Tuning',font=f)
     lab_tune.grid(row=1,column=0,padx=px, pady=py)
-    cb_tune=ttk.Combobox(width=cdw,values = list(dict_tunings.keys()),font=f)
+    cb_tune=Combobox(width=cdw,values = list(dict_tunings.keys()),font=f)
     cb_tune.grid(row=1,column=1,padx=px, pady=py)
     en_tune=Entry(my_window,width=cdw+2,font=f)
     en_tune.grid(row=1,column=2,padx=px, pady=py)
@@ -452,11 +451,11 @@ if __name__ == '__main__':
     lifret=[i for i in range(16)]
     lab_fret=Label(my_window, text='Frets start - end',font=f)
     lab_fret.grid(row=ro,column=0,padx=px, pady=py)
-    cb_fr1=ttk.Combobox(width=cdw,values = lifret,font=f)
+    cb_fr1=Combobox(width=cdw,values = lifret,font=f)
     cb_fr1.grid(row=ro,column=1,padx=px, pady=py)
     cb_fr1.current(0) # selects the first value as default
     cb_fr1.event_generate("<<ComboboxSelect>>") # works with the prev line
-    cb_fr2=ttk.Combobox(width=cdw,values = lifret,font=f)
+    cb_fr2=Combobox(width=cdw,values = lifret,font=f)
     cb_fr2.grid(row=ro,column=2,padx=px, pady=py)
     cb_fr2.current(7) # selects the 8 as default
     cb_fr2.event_generate("<<ComboboxSelect>>") # works with the prev line
@@ -464,18 +463,18 @@ if __name__ == '__main__':
     
     # row 10 cb scale
     ro=10
-    cb_sq1=ttk.Combobox(width=cdw,font=f)
+    cb_sq1=Combobox(width=cdw,font=f)
     cb_sq1.grid(row=ro,column=0,padx=px, pady=py)
-    cb_sq2=ttk.Combobox(width=cdw,font=f)
+    cb_sq2=Combobox(width=cdw,font=f)
     cb_sq2.grid(row=ro,column=1,padx=px, pady=py)
-    cb_sq3=ttk.Combobox(width=cdw,font=f)
+    cb_sq3=Combobox(width=cdw,font=f)
     cb_sq3.grid(row=ro,column=2,padx=px, pady=py)
     # ro=3
     ro=3
     lab_scachor=Label(my_window, text='Scales or Chords',font=f)
     lab_scachor.grid(row=ro,column=0,padx=px, pady=py)
     #category
-    cb_cat=ttk.Combobox(width=cdw,font=f)
+    cb_cat=Combobox(width=cdw,font=f)
     cb_cat.grid(row=ro,column=2,padx=px, pady=py)
     def UpdscalesNames(event):
         sc=cb_scachor.get()
@@ -487,7 +486,7 @@ if __name__ == '__main__':
         cb_sq2['values'] = liscales
         cb_sq3['values'] = liscales
     cb_cat.bind('<<ComboboxSelected>>',UpdscalesNames) 
-    cb_scachor=ttk.Combobox(width=cdw,values = ['scales','chords'],font=f)
+    cb_scachor=Combobox(width=cdw,values = ['scales','chords'],font=f)
     cb_scachor.grid(row=ro,column=1,padx=px, pady=py)
     def UpdCategory(event):
         cb_cat['values'] = list(dict_definitions[cb_scachor.get()].keys())
@@ -536,7 +535,7 @@ if __name__ == '__main__':
     lab_c3inf.grid(row=ro,column=2,padx=px, pady=py)
     # row 6
     ro=6
-    cb_desc=ttk.Combobox(width=cdw,values = ['desc','ignore desc'],font=f)
+    cb_desc=Combobox(width=cdw,values = ['desc','ignore desc'],font=f)
     cb_desc.grid(row=ro,column=1,padx=px, pady=py)
     cb_desc.current(0) # selects the first value as default
     cb_desc.event_generate("<<ComboboxSelect>>") # works with the prev line
@@ -554,15 +553,15 @@ if __name__ == '__main__':
     # row 8 cb root notes
     ro=8
     liscales=[v for k,v in dict_numnotes.items()]
-    cb_r1=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r1=Combobox(width=cdw,values = liscales,font=f)
     cb_r1.grid(row=ro,column=0,padx=px, pady=py)
     cb_r1.current(0) # selects the first value as default
     cb_r1.event_generate("<<ComboboxSelect>>") # works with the prev line
-    cb_r2=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r2=Combobox(width=cdw,values = liscales,font=f)
     cb_r2.grid(row=ro,column=1,padx=px, pady=py)
     cb_r2.current(0) # selects the first value as default
     cb_r2.event_generate("<<ComboboxSelect>>") # works with the prev line
-    cb_r3=ttk.Combobox(width=cdw,values = liscales,font=f)
+    cb_r3=Combobox(width=cdw,values = liscales,font=f)
     cb_r3.grid(row=ro,column=2,padx=px, pady=py)
     cb_r3.current(0) # selects the first value as default
     cb_r3.event_generate("<<ComboboxSelect>>") # works with the prev line
